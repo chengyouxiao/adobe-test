@@ -39,10 +39,9 @@ var symbolMap = {
     "$": "dollar"
 };
 
-var folder = "~/Documents/javascript-test/adobe-test/output/"
-
 var doc = app.activeDocument; // Make sure the document is opend and selected
 var textLayer = doc.activeLayer; //Make sure the layer that has the letter is selected
+var folder = "/Users/sunshower/Documents/#OldDocumentBefore050824/javascript-test/adobe-test/output/"
 
 // Calculate the center of the canvas
 var centerX = doc.width / 2;
@@ -60,20 +59,45 @@ pngOptions.artBoardClipping = false;
 pngOptions.horizontalScale = 100;
 pngOptions.verticalScale = 100;
 
-var textItem = textLayer.textItem;
-var saved = textItem.contents;
+var clippingMaskLayer1 = doc.artLayers.getByName("Black & White 1");
+var clippingMaskLayer2 = doc.artLayers.getByName("Color Fill 1");
+
 try{
     for(var j in char_range){
         for (var i = 0; i < char_range[j].length; i++) {
             var character = char_range[j][i];
-            textItem.contents = character;
 
-            var bounds = textLayer.bounds;
+            var smartoLayer = doc.artLayers.getByName("smarto");
+            if (smartoLayer) {
+                smartoLayer.remove();
+            } 
+
+            //make a copy
+            textLayer= doc.artLayers.getByName("A");
+            doc.activeLayer = textLayer;
+            smartoLayer = textLayer.duplicate();
+            
+            smartoLayer.name = "smarto"
+            smartoLayer.textItem.contents = character;
+            var bounds = smartoLayer.bounds;
             var newX = centerX - ((bounds[2].value - bounds[0].value) / 2);
             var newY = centerY + ((bounds[1].value - bounds[3].value) / 2);
-            textLayer.translate(newX - bounds[0], newY - bounds[1]);
-            textItem.justification = Justification.CENTER;
+            smartoLayer.translate(newX - bounds[0], newY - bounds[1]);
+            smartoLayer.textItem.justification = Justification.CENTER;
 
+            doc.activeLayer = doc.artLayers.getByName("smarto");
+            var idnewPlacedLayer = stringIDToTypeID( 'newPlacedLayer' );
+            executeAction(idnewPlacedLayer, undefined, DialogModes.NO);
+ 
+            // Apply the clipping masks
+            smartoLayer = doc.artLayers.getByName("smarto");
+            doc.activeLayer = smartoLayer;
+            applyClippingMask(clippingMaskLayer1, smartoLayer);
+            applyClippingMask(clippingMaskLayer2, smartoLayer);
+
+            //write
+            smartoLayer = doc.artLayers.getByName("smarto");
+            doc.activeLayer = smartoLayer;
             var ch = symbolMap.hasOwnProperty(character)? symbolMap[character]: character;
             doc.exportDocument(new File(folder + j + "-" + ch + ".png"), ExportType.SAVEFORWEB, pngOptions);
         }
@@ -81,4 +105,16 @@ try{
 }
 finally{
     textItem.contents = saved;
+}
+
+
+function applyClippingMask(clippingLayer, baseLayer) {
+    // Make sure the base layer is active
+    app.activeDocument.activeLayer = baseLayer;
+    
+    // Select the clipping layer
+    app.activeDocument.activeLayer = clippingLayer;
+    
+    // Create the clipping mask
+    clippingLayer.grouped = true;
 }
