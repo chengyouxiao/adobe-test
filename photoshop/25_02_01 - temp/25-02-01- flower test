@@ -1,0 +1,33 @@
+from PIL import Image, ImageDraw, ImageFont
+
+def generate_letter_image(letter="A", image_size=(500, 500), font_path="arial.ttf", output_path="letter_A.png"):
+    # Create a blank image with transparent background
+    image = Image.new("RGBA", image_size, (255, 255, 255, 0))
+    draw = ImageDraw.Draw(image)
+
+    # Dynamically adjust font size to fit image
+    font_size = int(image_size[0] * 0.7)  # 70% of image width
+    try:
+        font = ImageFont.truetype(font_path, font_size)
+    except IOError:
+        print("Font not found. Using default font.")
+        font = ImageFont.load_default()
+
+    # Get text bounding box
+    bbox = draw.textbbox((0, 0), letter, font=font)
+    text_width = bbox[2] - bbox[0]
+    text_height = bbox[3] - bbox[1]
+
+    # Calculate position to center the text
+    x = (image_size[0] - text_width) // 2
+    y = (image_size[1] - text_height) // 2
+
+    # Draw the letter
+    draw.text((x, y), letter, font=font, fill="white")
+
+    # Save the image
+    image.save(output_path)
+    print(f"Image saved as {output_path}")
+
+# Run the function
+generate_letter_image()

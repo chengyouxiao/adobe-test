@@ -39,7 +39,7 @@ var symbolMap = {
     "$": "dollar"
 };
 
-var folder = "~/Documents/javascript-test/adobe-test/output/"
+var folder = "/Users/sunshower/Documents/#OldDocumentBefore050824/javascript-test/adobe-test/output/"
 
 var doc = app.activeDocument; // Make sure the document is opend and selected
 var textLayer = doc.activeLayer; //Make sure the layer that has the letter is selected
